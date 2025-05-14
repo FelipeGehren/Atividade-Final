@@ -18,6 +18,18 @@ if not api_key:
 
 url = "https://newsapi.org/v2/everything"
 
+headers = {
+    'x-api-key': api_key
+}
+
+temas = {
+    '1': 'tecnologia',
+    '2': 'política',
+    '3': 'investimentos',
+    '4': 'criminal'
+}
+
+historico_buscas = []
 
 def menu():
     while True:
@@ -29,31 +41,57 @@ def menu():
             2 - Visualizar escolhas
             """)
         return input("Escolha uma opção: ")
-    
-headers = {
-    'x-api-key': api_key
-}
-
-params = {
-    'q': "tecnologia",
-    'language': "pt"
-}
-
 
 def selecionar_tema():
 
     print("\nMenu de opções:")
     print("""
-            0 - Sair
-            1 - Tecnologia
-            2 - Política
-            3 - Investimentos
-            4 - Criminal
-            """)
-    return input("Escolha uma opção: ")
-    
-    tema = input("")
+        0 - Sair
+        1 - Tecnologia
+        2 - Política
+        3 - Investimentos
+        4 - Criminal
+        """)
+    opcao = input("Escolha uma opção: ")
+    return temas.get(opcao)
 
+def ver_historico():
+    if historico_buscas:
+        print("\n Histórico das buscas realizadas:")
+        for tema, quantidade in historico_buscas:
+            print(f"Tema: {tema}, Quantidade de buscas: {quantidade}")
+    else:
+        print("Nenhuma busca realizada.")
+
+
+def buscar_noticias(tema, quantidade):
+
+    params = {
+        'q': tema,
+        'pageSize': quantidade,
+        'sortBy': 'publishedAt',
+        'Language': 'pt',
+    }
+
+
+    resposta = requests.get(url=url, headers=headers, params=params)
+
+    if resposta.status_code == 200:
+        noticias = resposta.json().get('articles', [])
+        if noticias:
+            print(f"{len(noticias)} noticias encontradas sobre o tema: {tema}")
+        
+        for noticia in noticias:
+            titulo = noticia.get('title', 'Sem título')
+            fonte = noticia.get('source')
+            autor = noticia.get('author')
+
+            print(f"Título: {titulo}")
+            print(f"Fonte: {fonte}")
+            print(f"Autor: {autor}")
+            
+        return len(noticias)
+    
 while True:
 
     opcao = menu()
@@ -62,4 +100,16 @@ while True:
         print("Saindo do programa.")
         break
     elif opcao == "1":
-        selecionar_tema()
+        tema = selecionar_tema()
+        if tema:
+            quantidade = int(input("Quantas noticias deseja visualizar? (Máximo 5): "))
+            if quantidade > 0 and quantidade <= 10:
+                quantidade_noticias = buscar_noticias(tema, quantidade)
+            else:
+                print("Quantidade inválida, tente novamente.")
+
+    elif opcao == "2":
+        ver_historico()
+    
+    else:
+        print("Solicitação inválida, tente novamente.")
