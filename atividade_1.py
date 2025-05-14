@@ -73,7 +73,6 @@ def buscar_noticias(tema, quantidade):
         'Language': 'pt',
     }
 
-
     resposta = requests.get(url=url, headers=headers, params=params)
 
     if resposta.status_code == 200:
@@ -103,7 +102,7 @@ while True:
         tema = selecionar_tema()
         if tema:
             quantidade = int(input("Quantas noticias deseja visualizar? (Máximo 5): "))
-            if quantidade > 0 and quantidade <= 10:
+            if quantidade > 0 and quantidade <= 5:
                 quantidade_noticias = buscar_noticias(tema, quantidade)
             else:
                 print("Quantidade inválida, tente novamente.")
