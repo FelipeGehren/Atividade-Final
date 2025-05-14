@@ -18,6 +18,20 @@ if not api_key:
 
 url = "https://newsapi.org/v2/everything"
 
+headers = {
+    'x-api-key': api_key
+}
+
+temas = {
+    '1': 'tecnologia',
+    '2': 'política',
+    '3': 'investimentos',
+    '4': 'criminal'
+}
+
+historico = []
+total_noticias = 0
+
 
 def menu():
     while True:
@@ -30,29 +44,33 @@ def menu():
             """)
         return input("Escolha uma opção: ")
     
-headers = {
-    'x-api-key': api_key
-}
-
-params = {
-    'q': "tecnologia",
-    'language': "pt"
-}
 
 
 def selecionar_tema():
 
     print("\nMenu de opções:")
     print("""
-            0 - Sair
-            1 - Tecnologia
-            2 - Política
-            3 - Investimentos
-            4 - Criminal
-            """)
-    return input("Escolha uma opção: ")
-    
-    tema = input("")
+        0 - Sair
+        1 - Tecnologia
+        2 - Política
+        3 - Investimentos
+        4 - Criminal
+        """)
+    return temas.get(input('Escolha um tema: '))
+
+def buscar_noticias(tema, quantidade):
+    global total_noticias
+    params = {
+        'q': tema,
+        'pageSize': quantidade,
+        'sortBy': 'publishedAt',
+        'Language': 'pt',
+    }
+    resposta = requests.get(url=url, headers=headers, params=params)
+    if resposta.status_code == 200:
+        noticias = resposta.json().get('articles', [])
+        
+
 
 while True:
 
@@ -63,3 +81,4 @@ while True:
         break
     elif opcao == "1":
         selecionar_tema()
+         
