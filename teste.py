@@ -1,106 +1,79 @@
 import requests
 
-# Simula o banco de dados de usuários
-usuarios_db = {
-    # 'usuario_exemplo': {'senha': '123', 'userId': 1}
-}
+url = 'https://jsonplaceholder.typicode.com'
+usuarios_db = {}
 
-BASE_URL = 'https://jsonplaceholder.typicode.com'
-
-
-def exibir_menu():
-    """Exibe o menu principal do sistema."""
-    print("\nMenu:")
-    print("1. Ver todos os posts")
-    print("2. Ver comentários de um post")
-    print("3. Ver meus próprios posts")
-    print("4. Sair")
-
-
-def login_ou_criar_usuario():
-    """Gerencia login ou criação de conta."""
+def login():
     while True:
-        nome = input("Digite seu nome de usuário: ").strip()
-        senha = input("Digite sua senha: ").strip()
+        nome = input("Usuário: ")
+        senha = input("Senha: ")
 
         if nome in usuarios_db:
             if usuarios_db[nome]['senha'] == senha:
-                print(f"✅ Login bem-sucedido! Bem-vindo, {nome}")
+                print(f" Bem-vindo de volta, {nome}!")
                 return usuarios_db[nome]['userId']
-            else:
-                print("❌ Senha incorreta. Tente novamente.")
+            print(" Senha incorreta.")
         else:
-            print("🔐 Usuário não encontrado. Criando novo usuário...")
-            novo_id = len(usuarios_db) + 1
-            usuarios_db[nome] = {'senha': senha, 'userId': novo_id}
-            print(f"✅ Usuário criado com sucesso! Seu userId é {novo_id}")
-            return novo_id
+            user_id = len(usuarios_db) + 1
+            usuarios_db[nome] = {'senha': senha, 'userId': user_id}
+            print(f" Novo usuário criado: {nome} (ID: {user_id})")
+            return user_id
 
-
-def ver_todos_posts():
-    """Exibe os primeiros 10 posts."""
-    response = requests.get(f'{BASE_URL}/posts')
-    if response.ok:
-        posts = response.json()
-        for post in posts[:10]:
-            print(f"\nPost ID: {post['id']}\nTítulo: {post['title']}")
-    else:
+def ver_posts():
+    try:
+        resposta = requests.get(f'{url}/posts')
+        resposta.raise_for_status()
+        for post in resposta.json()[:10]:
+            print(f"\n Post {post['id']} - {post['title']}")
+    except requests.RequestException:
         print("Erro ao buscar posts.")
 
-
-def ver_comentarios_post():
-    """Exibe os comentários de um post específico."""
-    post_id = input("Digite o ID do post: ").strip()
-    if not post_id.isdigit():
+def ver_comentarios():
+    post_id = input("ID do post: ")
+    if not post_id:
         print("ID inválido.")
         return
-
-    response = requests.get(f'{BASE_URL}/posts/{post_id}/comments')
-    if response.ok:
-        comentarios = response.json()
-        for c in comentarios:
-            print(f"\nAutor: {c['email']}\nComentário: {c['body']}")
-    else:
+    
+    try:
+        resposta = requests.get(f'{url}/posts/{post_id}/comments')
+        resposta.raise_for_status()
+        for c in resposta.json():
+            print(f"\n {c['email']}: {c['body']}")
+    except requests.RequestException:
         print("Erro ao buscar comentários.")
 
-
 def ver_meus_posts(user_id):
-    """Exibe os posts do usuário logado."""
-    response = requests.get(f'{BASE_URL}/posts', params={'userId': user_id})
-    if response.ok:
-        posts = response.json()
+    try:
+        resposta = requests.get(f'{url}/posts', params={'userId': user_id})
+        resposta.raise_for_status()
+        posts = resposta.json()
         if posts:
-            print(f"\nVocê possui {len(posts)} post(s):")
             for post in posts:
-                print(f"\nTítulo: {post['title']}\nConteúdo: {post['body']}")
+                print(f"\n {post['title']}\n{post['body']}")
         else:
-            print("Você ainda não possui posts.")
-    else:
+            print("Nenhum post encontrado.")
+    except requests.RequestException:
         print("Erro ao buscar seus posts.")
 
-
 def sistema():
-    """Função principal do sistema."""
-    print("Bem-vindo ao sistema de posts!")
-    user_id = login_ou_criar_usuario()
+    print("=== Sistema de Posts ===")
+    user_id = login()
 
     while True:
-        exibir_menu()
-        opcao = input("Escolha uma opção: ").strip()
+        print("\nMenu:\n1. Ver posts\n2. Ver comentários\n3. Meus posts\n4. Sair")
+        opcao = input("Escolha: ")
 
         if opcao == '1':
-            ver_todos_posts()
+            ver_posts()
         elif opcao == '2':
-            ver_comentarios_post()
+            ver_comentarios()
         elif opcao == '3':
             ver_meus_posts(user_id)
         elif opcao == '4':
-            print("Saindo do sistema. Até logo!")
+            print("Saindo do sistema...")
             break
         else:
-            print("Opção inválida. Tente novamente.")
+            print("Opção inválida.")
+            
 
-
-# Início do programa
-if __name__ == "__main__":
-    sistema()
+sistema()
